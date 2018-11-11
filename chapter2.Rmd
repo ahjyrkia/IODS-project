@@ -5,7 +5,7 @@ output:
 ---
 # Regression and model validation
 Week 2, 
-Anton Jyrki‰inen
+Anton Jyrki√§inen
 
 ### Part 1
 
