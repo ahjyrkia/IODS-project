@@ -1,6 +1,6 @@
 ---
-title:"IODS course project"
-author:"Anton Jyrki√§inen"
+title: "IODS course project"
+author: "Anton Jyrki‰inen"
 output:
   html_document:
     theme: cosmo

@@ -49,13 +49,24 @@ learning2014 <- filter(learning2014, Points > 0)
 dim(learning2014)
 
 # Setting and printing working directory
-dir <- getwd()
-setwd(dir)
-dir
+
+setwd("C:/Users/Anton/Documents/IODS-project/")
+getwd()
 
 # Saving the dataset locally
 write.table(learning2014,file="learning2014.txt")
 
 # Testing saved dataset. Shows same results as the dim(learning2014)
-importedDataset <- read.table("C:/Users/anton.jyrkiainen/Documents/IODS-project/learning2014.txt")
+importedDataset <- read.table("C:/Users/Anton/Documents/IODS-project/learning2014.txt")
 dim(importedDataset)
+
+#sandbox
+lm1 <- lm(formula = Points ~ Attitude + stra + deep, data = learning2014)
+
+summary(lm1)
+
+lm1 <- lm(formula = Points ~ Attitude + stra, data = learning2014)
+
+summary(lm1)
+
+plot(lm1, which = c(1,2,5))

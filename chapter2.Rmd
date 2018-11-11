@@ -1,40 +1,132 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
 # Regression and model validation
-Week 2
+Week 2, 
+Anton Jyrkiäinen
 
-The data used is from a study which investigates the relationship between teaching, studying habits and results of the students.
+### Part 1
+
+The data used is from a study which investigates the relationship between teaching, learning approaches and exam results of the students.
 
 First we import the data which we wrangled and saved locally in the first part of the exercise. The data is set to a variable ```lrn14``` using read.table. 
 
 ```{r}
-lrn14 <- read.table("C:/Users/anton.jyrkiainen/Documents/IODS-project/learning2014.txt")
+lrn14 <- read.table("C:/Users/Anton/Documents/IODS-project/learning2014.txt")
 ```
 
 We also need to import few dependancies for later use:
 ```{r}
+library(dplyr)
 library(GGally)
 library(ggplot2)
-library(dplyr)
 ```
 
-By using str() we can have a look at the structure of the data. The output gives us meta information about the data in general and about each column itself: amount of rows and colums, name of the variables, data type and the first values.
+By using ```str()``` we can have a look at the structure of the data:
 
 ```{r}
 str(lrn14)
 ```
+
+The output gives us meta information about the data in general and about each column itself: amount of rows and colums, name of the variables, data type and the first values. There's seven variables: gender, global attitude toward statistics, exam points and three variables "deep" (deep questions), "surf" (surface questions), "stra" (strategic questions) which are composed of means calculated from answering various questions. These three, in the same order as mentioned previously, stand for "intention to maximize understanding, with a true commitment to learning", "memorizing without understanding, with a serious lack of personal engagement in the learning process" and "the ways students organize their studying".
+
+The questions were measured with a scale from 1 to 5 with (1 = disagree, 5 = agree). The data covers answers from 183 participants of which 67% were female and had a mean age of 25.6 years. Observations with 0 exam points are excluded from the data in the wrangling part of the exercise.
 
 Using ```dim()``` we get an output which gives as the dimensions of the dataset.
 ```{r}
 dim(lrn14)
 ```
 
-Using this dataset we generate a graphical overview:
+### Part 2
+
+The ```ggpairs()``` functions provides us a matrix of plots which consists of density plots, bar plot, histograms, scatter plots, correlation coefficients and box plots. These plots represent all the possible combinations of the variables.
+
+Using the dataset with ```ggpairs()``` we generate a graphical overview:
+
 ```{r}
-p <- ggpairs(lrn14, mapping = aes(), lower = list(combo = wrap("facethist", bins = 20)))
+p <- ggpairs(lrn14, mapping = aes(col = gender), lower = list(combo = wrap("facethist", bins = 20)))
 p
 ```
 
-And provide a summary:
+
+And with ```summary()``` we get a summary of the variables:
 
 ```{r}
 summary(lrn14)
 ```
+
+Just looking at the density plots they give us an rough idea how each variable is distributed. All the variables seem to be close to normally distributed expect for "age" and "deep". The scale for age is from 17 to 55 so it makes sense for the density plot to be heavily distributed to the young side since the participants of the survey are students. In the "deep" variable there is quite interesting bias towards agreeing to a lot to the questions. From the summary we see that the mean to answering "deep questions" is 3.68.
+
+### Part 3
+
+A regression model is made with ```lm()```. As for the formula we will be using "Points" as dependent variable and "Attitude", "stra" and "deep" for explanatory variables. Also a summary of the regression model is generated with ```summary()```:
+
+```{r}
+lm1 <- lm(formula = Points ~ Attitude + stra + deep, data = lrn14)
+lm1
+```
+
+The intercept is the value of y ("Points") when all the x ("Attitude","stra","deep") are 0. The other values are the slope in the regression model.
+
+```{r}
+summary(lm1)
+```
+
+The residuals are difference between the observed value of the dependant variable and the predicted value. Each data point has a residual. The residuals should be normally distributed and their sum should always be 0. Residuals can reveal unexplained patterns in data which is fitted to the model.
+
+The coefficients show us the estimate, standard error, t-value and p-value. Standard error is an estimate of the standard deviation of the coefficient estimate. T-value is estimate divided by standard error. The p-value shows the probability of observing A t-value larger than the one presented. P-value basically indicates if there's evidence against the null hypothesis. Low p-value
+indicates strong evidence against the null hypothesis and high p-value indicates weak evidence or no evidence against the null hypothesis.
+
+The output also gives us a "signif. codes" which make it easier to interpret the results with just a glance. In this case "Attitude" received p-value of under 0.01 which means there is strong evidence that the null hypothesis does not hold. This means that it is unlikely that "Attitude" does not correlate with "points". "stra" had p-value between 0.05 and 0.1 which indicates weak evidence that the null hypothesis does not hold. Variable "deep" does not have statistically signifant relationship with the target variable.
+
+Next we fit the model again without variable "deep":
+
+```{r}
+lm1 <- lm(formula = Points ~ Attitude + stra, data = lrn14)
+lm1
+```
+
+```{r}
+summary(lm1)
+```
+
+Without the variable "deep" we get similar results with a bit higher p-values for "Attitude" and "stra" but still within the same signifiance codes as before. Also the r-squared and f-statistics stay relatively the same.
+
+### Part 4
+
+Residual standard error is the standard deviation of the residuals.
+
+R-squared tells us how close the data is to the fitted regression line. The higher the R-squared, the better the model fits the data. If the R-squared was 100% the fitted values would all be on the fitted regression line. Difference between multiple and adjusted R-squared is that adjusted R-squared takes the phenomenon of R-squared automatically increasing when more explanatory variables are added to the model. The adjusted R-squared is at 19.51% which indicates that the data points will be quite scattered around the fitted regression line. This indicates that producing predictions with this model would be somewhat inaccurate. 
+
+F-statistic is variaton between sample means divided by variance within the samples. The p-value in the f-statistics indicate that atleast some of the results are statistically significant. If the p-value here would indicate insignificance we couldn't reject the null hypothesis.
+
+### Part 5
+
+Usin ```qplot()``` we generate three diagnostics plots: "Residuals vs Fitted values", "Normal QQ-plot" and "Residuals vs Leverage". We give the model as parameter with a vector of indexes
+to choose the right plots.
+
+Residuals vs fitted values:
+
+```{r}
+plot(lm1, which = c(1))
+```
+
+We can see that variability of the points are about the equal so that would be good. There seems to be no signs here that would indicate a problem with the model.
+
+Normal Q-Q:
+
+```{r}
+plot(lm1, which = c(2))
+```
+
+If the observations are normally distributed the plot should results in a approximately straight line. In the plot above we can see that the line the pairs create is fairly straight so there should be no problem here. There are some extreme values but they are as extreme as would be expected. We can see the same kind of extremities in the low and high end so that would fit in the principles of normal distribution.
+
+Residuals vs leverage:
+
+```{r}
+plot(lm1, which = c(5))
+```
+
+This plot shows us if there are extreme values that are influental. Even though there is some extreme values they are no influental since they more or less follow the trend of the other values. Excluding influental point would radically change the results which don't seem to be the case here.
