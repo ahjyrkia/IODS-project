@@ -11,8 +11,8 @@ Anton Jyrkiäinen
 
 The data used is from a study which investigates the relationship between teaching, learning approaches and exam results of the students.
 
-[Raw data](http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS3-data.txt) 
-[Metadata](http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS2-meta.txt) 
+Link to data [here](http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS3-data.txt) and link to metadata
+[here](http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS2-meta.txt).
 
 First we import the data which we wrangled and saved locally in the first part of the exercise. The data is set to a variable ```lrn14``` using read.table. 
 
