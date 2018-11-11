@@ -1,7 +1,40 @@
-# Insert chapter 2 title here
+# Regression and model validation
+Week 2
 
-*Describe the work you have done this week and summarize your learning.*
+The data used is from a study which investigates the relationship between teaching, studying habits and results of the students.
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using  
+First we import the data which we wrangled and saved locally in the first part of the exercise. The data is set to a variable ```lrn14``` using read.table. 
+
+```{r}
+lrn14 <- read.table("C:/Users/anton.jyrkiainen/Documents/IODS-project/learning2014.txt")
+```
+
+We also need to import few dependancies for later use:
+```{r}
+library(GGally)
+library(ggplot2)
+library(dplyr)
+```
+
+By using str() we can have a look at the structure of the data. The output gives us meta information about the data in general and about each column itself: amount of rows and colums, name of the variables, data type and the first values.
+
+```{r}
+str(lrn14)
+```
+
+Using ```dim()``` we get an output which gives as the dimensions of the dataset.
+```{r}
+dim(lrn14)
+```
+
+Using this dataset we generate a graphical overview:
+```{r}
+p <- ggpairs(lrn14, mapping = aes(), lower = list(combo = wrap("facethist", bins = 20)))
+p
+```
+
+And provide a summary:
+
+```{r}
+summary(lrn14)
+```
