@@ -1,0 +1,130 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+# Logistic regression
+Week 3, 
+Anton Jyrkiäinen
+
+Dependancies used:
+```{r message=FALSE}
+library(dplyr);
+library(ggplot2);
+library(tidyr);
+```
+
+First we import the data which we wrangled and saved locally in the first part of the exercise. The data is set to a variable ```alc``` using read.table. 
+```{r}
+alc <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/alc.txt", sep = ",", header=TRUE)
+```
+
+Variables in the dataset:
+```{r}
+names(alc)
+```
+
+The dataset consists of data collected from school reports and questionnaires from two different Portugese schools regarding the performance in two subjects: mathematics and Portugese.
+
+Link to the data [here](https://archive.ics.uci.edu/ml/machine-learning-databases/00320/) and link to metadata
+[here](https://archive.ics.uci.edu/ml/datasets/Student+Performance).
+
+Absences, studytime and grades go together quite well when doing analysis of school performance. I expect that absences are positively correlated and studytime and grades negatively correlated with high alcohol use. Gender will probably have no difference in this and will not be statistically significant Therefor the variables to be used are ```absences```, ```studytime```, ```G3``` and ```sex```.
+
+Barplot of each variable we're interested in:
+```{r warning=FALSE}
+ggplot(data = alc, aes(x = absences)) + geom_bar()
+```
+```{r warning=FALSE}
+ggplot(data = alc, aes(x = G3)) + geom_bar()
+```
+```{r warning=FALSE}
+ggplot(data = alc, aes(x = sex)) + geom_bar()
+```
+```{r warning=FALSE}
+ggplot(data = alc, aes(x = studytime)) + geom_bar()
+```
+
+In the barplots we can observe the distribution of the variables we've chosen. We can see that it is more common to have none or less absences. Most of the students are getting average or a bit above average grades.There's also quite large number of students receiving 0 grade. There's slightly more female students than male students. Majority of the students seem to study less than 2 hours or 2-5 hours weekly.
+
+Boxplots:
+```{r}
+g1 <- ggplot(alc, aes(x = high_use, y = G3, col = sex))
+g1 + geom_boxplot()
+
+g2 <- ggplot(alc, aes(x = high_use, y = absences, col = sex))
+g2 + geom_boxplot()
+
+g2 <- ggplot(alc, aes(x = high_use, y = studytime, col = sex))
+g2 + geom_boxplot()
+```
+
+From the boxplots we can see that the final grades were better in the group with no heavy use of alcohol. There also seems to be more absences in the group with heavy use. As with studytime there seems to be higher average of studying time in the group with no heavy alcohol use.
+
+Grade means by group:
+```{r}
+alc %>% group_by(sex, high_use) %>% summarise(count = n(), mean_grade = mean(G3))
+```
+
+Among the female students there's a grade mean increase of 0.71 when the person is considered to have high use of alcohol. Among the male students there's a large grade drop of 1.63 points if the student is categorized to the high use of alcohol group.
+
+Absence mean by group:
+```{r}
+alc %>% group_by(sex, high_use) %>% summarise(count = n(), mean_absences = mean(absences))
+```
+
+We can observe that the high alcohol use has a negative impact on the absences of the student. With the female students there's 3.93 more school absences and with the male students the absences are more than doubled.
+
+Study time mean by group:
+```{r}
+alc %>% group_by(sex, high_use) %>% summarise(count = n(), mean_studytime = mean(studytime))
+```
+
+Average studying times seem also to suffer from high alcohol use with lower mean studying times in both groups.
+
+Summary of logistic regression with our variables and high/low alcohol consumption set as the target variable:
+```{r}
+m <- glm(high_use ~ sex + absences + G3 + studytime, data = alc, family = "binomial")
+summary(m)
+```
+
+From the summary of the model we can see that our original hypothesis does not hold. Gender does in fact seem to be statistically significant and the final grade is not. The summary reveals that it is more probable to be in the high use group if the student is male and the high use variable correlates with absences and studytime variables. The deviance residuals seem to be fine since they are roughly close to centered to zero and symmetrical. Nul deviance and residual deviance can be used to compare models and to calculate R-square and p-value. AIC can also be used to comparing to other models.
+
+
+Odds ratios with their confidence intervals:
+
+```{r message=FALSE}
+OR <- coef(m) %>% exp
+CI <- confint(m) %>% exp
+cbind(OR, CI)
+```
+
+The ```OR``` column is the exponent of the coefficient which can be interpret as odds ratio between a unit change in the corresponging explanatory variable. Therefor the row ```sexM``` can be interpret as male students being ~2.3 times more likely to be heavy user of alcohol than the female students.
+
+We will be dropping ```G3``` from the model:
+```{r}
+m <- glm(high_use ~ sex + absences + G3 + studytime, data = alc, family = "binomial")
+```
+
+Let's explore the predictive power of the model:
+```{r}
+probabilities <- predict(m, type = "response")
+alc <- mutate(alc, probability = probabilities)
+alc <- mutate(alc, prediction = probability > 0.5)
+```
+
+First we used the predict()-function to get the probability of high use. Then added the predicted probabiliets to ```alc``` and then alter the table so it has a column ```prediction``` which has a boolean value as predictor of high use. If the probability was higher than 0.5 the value is set to ```TRUE``` otherwise ```FALSE```.
+
+Let's look at a confusion matrix:
+```{r}
+table(high_use = alc$high_use, prediction = alc$prediction)
+```
+
+We can see that in 302 case the prediction was correct and in 80 cases not.
+
+Tabulate the target variable versus the prediction:
+```{r}
+table(high_use = alc$high_use, prediction = alc$prediction) %>% prop.table %>% addmargins
+```
+
+
