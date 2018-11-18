@@ -1,8 +1,4 @@
----
-output:
-  html_document: default
-  pdf_document: default
----
+
 # Regression and model validation
 Week 2, 
 Anton Jyrkiäinen
@@ -22,9 +18,9 @@ lrn14 <- read.table("C:/Users/Anton/Documents/IODS-project/learning2014.txt")
 
 We also need to import few dependancies for later use:
 ```{r}
-library(dplyr)
 library(GGally)
 library(ggplot2)
+library(dplyr)
 ```
 
 By using ```str()``` we can have a look at the structure of the data:

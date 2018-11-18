@@ -134,23 +134,21 @@ $(document).ready(function () {
 <p>First we import the data which we wrangled and saved locally in the first part of the exercise. The data is set to a variable <code>lrn14</code> using read.table.</p>
 <pre class="r"><code>lrn14 &lt;- read.table(&quot;C:/Users/Anton/Documents/IODS-project/learning2014.txt&quot;)</code></pre>
 <p>We also need to import few dependancies for later use:</p>
-<pre class="r"><code>library(dplyr)</code></pre>
+<pre class="r"><code>library(GGally)</code></pre>
+<pre><code>## Loading required package: ggplot2</code></pre>
+<pre class="r"><code>library(ggplot2)
+library(dplyr)</code></pre>
 <pre><code>## 
 ## Attaching package: 'dplyr'</code></pre>
+<pre><code>## The following object is masked from 'package:GGally':
+## 
+##     nasa</code></pre>
 <pre><code>## The following objects are masked from 'package:stats':
 ## 
 ##     filter, lag</code></pre>
 <pre><code>## The following objects are masked from 'package:base':
 ## 
 ##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code>library(GGally)</code></pre>
-<pre><code>## Loading required package: ggplot2</code></pre>
-<pre><code>## 
-## Attaching package: 'GGally'</code></pre>
-<pre><code>## The following object is masked from 'package:dplyr':
-## 
-##     nasa</code></pre>
-<pre class="r"><code>library(ggplot2)</code></pre>
 <p>By using <code>str()</code> we can have a look at the structure of the data:</p>
 <pre class="r"><code>str(lrn14)</code></pre>
 <pre><code>## 'data.frame':    166 obs. of  7 variables:
