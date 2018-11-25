@@ -1,0 +1,163 @@
+# Clustering and classification
+Week 4, 
+Anton Jyrkiäinen
+
+<!-- Part 1 & 2 -->
+R has some datasets already loaded in. Let's use the Boston dataset from the MASS package:
+```{r message=FALSE}
+library(MASS)
+data("Boston")
+```
+
+Details about the dataset can be found [here](https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/Boston.html).
+
+Structure and dimensions of the data:
+```{r}
+str(Boston)
+summary(Boston)
+```
+
+The data set has 506 rows and 14 colums. It is about the housing values in suburbs of Boston. The data consists of information such as average number of rooms per dwelling and accessibility of to radial highways.
+
+<!-- Part 3 -->
+We can see the first and third quartiles, min, max, median and mean from the summary of the variables using ```summary()```:
+
+```{r}
+summary(Boston)
+```
+
+With ```corrplot``` package we can observe and visualize hte correlations between the variables in the data:
+```{r message=FALSE}
+library(dplyr);
+library(corrplot)
+```
+
+First we calculate the correlation matrix, round it and then visualize with the correlation matrix:
+
+```{r}
+cor_matrix<-cor(Boston) %>% round(digits = 2)
+cor_matrix
+corrplot(cor_matrix, method="circle", type="upper", cl.pos="b", tl.pos="d", tl.cex = 0.6)
+```
+
+The strong correlations are easily distinguished from the matrix. As for example "indus" (proportion of non-retail business acres per town.) is negatively correlated with "dis" (weighted mean of distances to five Boston employment centres.) and "rad" (index of accessibility to radial highways.) is positively correlated with "tax" (full-value property-tax rate per $10,000.). One anomaly that could be noted is that the "chas" (Charles River dummy variable) variable has very little correlation with any other variable in the dataset. 
+
+For linear discriminant analysis we need to scale the data. This means subtracting the column means from the corresponding colums and divide the difference with standard deviation. This is easily managed with the ```scale()```-function.
+
+```{r}
+boston_scaled <- scale(Boston)
+```
+
+Let's look at the summariers of the scaled variables:
+```{r}
+summary(boston_scaled)
+```
+
+At first glance the most noticable difference is that all the variables have zero mean. Also all the variables go from negative to positive. The normalization of the data makes it so that comparing the variables with each other is much easier since the range of the values in the raw data could vary widely. The values are quite similar across the board now. The the potential change in the values within a variable should now be proportionately same within each variable.
+
+We also want the data to be a data frame:
+```{r}
+boston_scaled <- as.data.frame(boston_scaled)
+```
+
+Now we create a categorical variable of the crime rate in the Boston dataset using the quantiles as break points:
+```{r}
+bins <- quantile(boston_scaled$crim)
+crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE, labels = c("low", "med_low", "med_high", "high"))
+boston_scaled <- dplyr::select(boston_scaled, -crim)
+boston_scaled <- data.frame(boston_scaled, crime)
+```
+
+And divide the datasset to train and test sets so that 80% of the data belongs to the train set:
+```{r}
+n <- nrow(boston_scaled)
+ind <- sample(n, size = n * 0.8)
+train <- boston_scaled[ind,]
+test <- boston_scaled[-ind,]
+```
+
+Save from test data and drop the crime variable from test data:
+```{r}
+correct_classes <- test$crime
+test <- dplyr::select(test, -crime)
+```
+
+This is done because it is important when using a statistical method to predict something to have data to test how well the predictions fit.
+
+Fit the linear discriminant analysis on the train set and print it. We use the categorical crime rate as the target variable and all the other variables as predictors:
+```{r}
+lda.fit <- lda(crime ~ ., data = train)
+lda.fit
+```
+
+Then we provide a function for the lda biplot arrows, target classes as numeric and plot the ld results:
+```{r}
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "orange", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+classes <- as.numeric(train$crime)
+
+plot(lda.fit, dimen = 2, col = classes, pch = classes)
+lda.arrows(lda.fit, myscale = 1)
+```
+
+In the exercise it was asked to save and drop the crime variable but it was already done earlier. So either I don’t understand something or there’s a mistake in the assignment.
+
+We conitnue by predicting classes with test data and cross tabulate the results:
+```{r}
+lda.pred <- predict(lda.fit, newdata = test)
+table(correct = correct_classes, predicted = lda.pred$class)
+```
+
+The predictions are pretty close to being correct. Most of the wrong predictions seem to be in med_low and med_high.
+
+Next we reload the Boston dataset again, standardize it and set it to a variable:
+```{r}
+data("Boston")
+bostonScaled <- scale(Boston)
+```
+
+Calculate the distances between observations using euclidean distance matrix:
+```{r}
+dist_eu <- dist(bostonScaled)
+```
+
+We run the k-means algorithm on the data set:
+```{r}
+km <-kmeans(bostonScaled, centers = 3)
+```
+
+Plot the dataset with clusters:
+```{r}
+pairs(bostonScaled, col = km$cluster)
+```
+
+Let's investigate what is the optimal number of clusters with the method provided in the DataCamp exercises:
+```{r}
+library(ggplot2);
+# Boston dataset is available
+set.seed(123)
+
+# determine the number of clusters
+k_max <- 5
+
+# calculate the total within sum of squares
+twcss <- sapply(1:k_max, function(k){kmeans(bostonScaled, k)$tot.withinss})
+
+# visualize the results
+qplot(x = 1:k_max, y = twcss, geom = 'line')
+```
+
+The plot visualises how the total of within cluster sum of squares behave when the number of clusters changes. The sweet spot is where the WCSS drops radically. As we can see from the plot the drop is most drastic when going from one cluster to two. So we should use two clusters.
+
+Let's run the algorithm again with two clusters:
+```{r}
+km <-kmeans(bostonScaled, centers = 2)
+pairs(bostonScaled, col = km$cluster)
+```

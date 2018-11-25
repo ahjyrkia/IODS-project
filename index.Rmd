@@ -1,6 +1,6 @@
 ---
 title: "IODS course project"
-author: "Anton JyrkiÃ¤inen"
+author: "Anton Jyrkiäinen"
 output:
   html_document:
     theme: cosmo
@@ -25,6 +25,11 @@ output:
 ***
 
 ```{r child = "chapter3.Rmd"}
+```
+
+***
+
+```{r child = "chapter4.Rmd"}
 ```
 
 ***
