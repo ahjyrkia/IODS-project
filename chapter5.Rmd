@@ -1,0 +1,98 @@
+# Dimensionality reduction techniques
+Week 5, 
+Anton Jyrkiäinen
+
+The data set is from a human development report from United Nations Development Programme. Let's start by loading the dataset.
+```{r}
+human <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/human2.txt", sep = ",", header=TRUE)
+```
+
+More information about the data can be found  [here](http://hdr.undp.org/en/content/human-development-index-hdi) and metadata of the data we have used [here](https://raw.githubusercontent.com/TuomoNieminen/Helsinki-Open-Data-Science/master/datasets/human_meta.txt)
+
+Summary of the dataset:
+```{r}
+summary(human)
+```
+
+From the summary we can see the minimum, maximum, median, mean and 1st and 3rd quartiles. From the summary we can see that some of the minimum and maximum values have huge differences such as with adolescent birth rate (Ado.Birth).
+
+Plot matrix with ```ggpairs()```:
+```{r message=FALSE}
+library(GGally)
+library(ggplot2)
+ggpairs(human)
+```
+
+From the distributions we can see that the maternal mortality and adolescent birth rate are both very skewed. Only "Parli.F" and "Edu.Exp" seem to be close to normally distributed.
+
+Correlation matrix:
+```{r message=FALSE}
+library(dplyr);
+library(corrplot)
+cor_matrix<-cor(human) %>% round(digits = 2)
+corrplot(cor_matrix, method="circle", type="upper", cl.pos="b", tl.pos="d", tl.cex = 0.6)
+```
+
+Here we can easily see that life expectancy at birth is negatively correlated with maternal mortality ratio and adolescent birth rate.
+Same goes to expected years of schooling, which is also negatively correlated with maternal mortality ratio and adolescent birth rate. Strong positive correlations appear too. Expected years of schooling is positively correlated with life expectancy and maternal mortality ratio is positively correlated with adolescent birth rates.
+
+Next we perform principal component analysis:
+```{r warning=FALSE}
+pca_human <- prcomp(human)
+pca_human
+```
+
+Create summary and print it out:
+```{r warning=FALSE}
+s <- summary(pca_human)
+s
+```
+
+Create and print rounded percentages of variance capture by each PC
+```{r warning=FALSE}
+pca_pr <- round(100*s$importance[2,], digits = 1) 
+pca_pr
+```
+
+Create object pc_lab to be used as axis labels:
+```{r warning=FALSE}
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+```
+
+And lastly generate biplot:
+```{r warning=FALSE}
+biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+```
+
+The biplot is a way of visualizing the connections between two represantios of the same data. Because the values have very different ranges between the variables and the data is not standardized there's not much to learn from these outputs.
+
+Now we will perform the same analysis to the data after its standardized:
+```{r warning=FALSE}
+human_std <- scale(human)
+pca_human <- prcomp(human_std)
+pca_human
+```
+
+Create summary and print it out:
+```{r warning=FALSE}
+s <- summary(pca_human)
+s
+```
+
+Create and print rounded percentages of variance capture by each PC
+```{r warning=FALSE}
+pca_pr <- round(100*s$importance[2,], digits = 1) 
+pca_pr
+```
+
+As we can see the PC variables are much more distributed now.
+
+Create object pc_lab to be used as axis labels:
+```{r warning=FALSE}
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+```
+
+And lastly generate biplot:
+```{r warning=FALSE}
+biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+```

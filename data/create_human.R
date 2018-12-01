@@ -56,3 +56,38 @@ dim(human)
 # Save to data folder
 setwd("C:/Users/Anton/Documents/IODS-project/data/")
 write.csv(human, file="human")
+
+#Week 5 Data wrangling
+human <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/human1.txt", header = TRUE, sep = ",")
+
+# Structure and dimensions
+# We can see that there's 195 observations and 19 variables.
+# The data is a dataset from the United Nations Development Programme. It's about human
+# development in different areas.
+str(human)
+dim(human)
+
+# human$gni to numeric
+human$GNI <- as.numeric(human$GNI)
+
+# Columns to keep
+keep <- c("Country", "Edu2.FM", "Labo.FM", "Life.Exp", "Edu.Exp", "GNI", "Mat.Mor", "Ado.Birth", "Parli.F")
+human <- dplyr::select(human, one_of(keep))
+
+# Filter out rows with no values
+human_ <- filter(human, complete.cases(human))
+
+# Remove observations which relate to regions instead of countries
+last <- nrow(human_) - 7
+human_ <- human_[1:last, ]
+
+# Add countries as rownames
+rownames(human_) <- human_$Country
+
+# Remove the Country variable
+human_ <- select(human, -Country)
+
+# Save and replace old human file
+setwd("C:/Users/Anton/Documents/IODS-project/data/")
+write.csv(human_, file="human")
+
